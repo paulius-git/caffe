@@ -99,6 +99,7 @@ message NetParameter {
 // Update the next available ID when you add a new SolverParameter field.
 //
 // SolverParameter next available ID: 41 (last added: type)
+// Custom parameter next available ID: 10001 (last added: display_stats)
 message SolverParameter {
   //////////////////////////////////////////////////////////////////////////////
   // Specifying the train and test networks
@@ -239,6 +240,8 @@ message SolverParameter {
   }
   // DEPRECATED: use type instead of solver_type
   optional SolverType solver_type = 30 [default = SGD];
+
+  optional bool display_stats = 10000 [default = true];
 }
 
 // A message that stores the solver snapshots

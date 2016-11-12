@@ -1,5 +1,6 @@
 #include <cstdio>
 
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -7,6 +8,7 @@
 #include "caffe/util/format.hpp"
 #include "caffe/util/hdf5.hpp"
 #include "caffe/util/io.hpp"
+#include "caffe/util/stats.h"
 #include "caffe/util/upgrade_proto.hpp"
 
 namespace caffe {
@@ -246,6 +248,51 @@ void Solver<Dtype>::Step(int iters) {
               << result_vec[k] << loss_msg_stream.str();
         }
       }
+
+      if (param_.display_stats() && Caffe::root_solver()) {
+        // Display the activation stats.
+        const auto& blobs = net_->blobs();
+        const auto& blob_names = net_->blob_names();
+        CHECK_EQ(blobs.size(), blob_names.size())
+            << "There must be the same number of blobs and blob-names.";
+
+        for (uint i_blob = 0; i_blob < blobs.size(); i_blob++) {
+          if (blob_names[i_blob].find("split") != std::string::npos) continue;
+
+          Dtype min_actv = std::numeric_limits<Dtype>::max();
+          Dtype min_grad = std::numeric_limits<Dtype>::max();
+          Dtype max_actv = -std::numeric_limits<Dtype>::max();
+          Dtype max_grad = -std::numeric_limits<Dtype>::max();
+          Dtype min_abs_actv = min_actv;
+          Dtype min_abs_grad = min_grad;
+          double mean_actv = 0;
+          double mean_grad = 0;
+          double sum_sq_actv = 0;
+          double sum_sq_grad = 0;
+          computeBlobStats(blobs[i_blob],
+                           min_actv, max_actv,
+                           min_grad, max_grad,
+                           min_abs_actv, min_abs_grad,
+                           mean_actv, mean_grad,
+                           sum_sq_actv, sum_sq_grad);
+
+          char temp[10000];
+          sprintf(temp, 
+              "%20s %12.4f %12.4f %12.4f %12.4f %12.4f %12.4f "
+              "%12.4f %12.4f %.4e %.4e",
+              blob_names[i_blob].c_str(), 
+              min_actv, max_actv,
+              min_grad, max_grad,
+              min_abs_actv, min_abs_grad,
+              mean_actv, mean_grad,
+              sum_sq_actv, sum_sq_grad);
+          LOG(INFO) << temp;
+
+        }
+
+      }
+
+      // Display the weight stats
     }
     for (int i = 0; i < callbacks_.size(); ++i) {
       callbacks_[i]->on_gradients_ready();
