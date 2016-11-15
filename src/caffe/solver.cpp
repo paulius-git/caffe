@@ -277,22 +277,29 @@ void Solver<Dtype>::Step(int iters) {
                            sum_sq_actv, sum_sq_grad);
 
           char temp[10000];
+          // sprintf(temp, 
+          //     "%20s %12.4f %12.4f %12.4f %12.4f %12.4f %12.4f "
+          //     "%12.4f %12.4f %.4e %.4e",
+          //     blob_names[i_blob].c_str(), 
+          //     min_actv, max_actv,
+          //     min_grad, max_grad,
+          //     min_abs_actv, min_abs_grad,
+          //     mean_actv, mean_grad,
+          //     sum_sq_actv, sum_sq_grad);
           sprintf(temp, 
-              "%20s %12.4f %12.4f %12.4f %12.4f %12.4f %12.4f "
-              "%12.4f %12.4f %.4e %.4e",
+              "%20s %12.4f %12.4f %12.4f %12.4f %.4e %.4e",
               blob_names[i_blob].c_str(), 
               min_actv, max_actv,
               min_grad, max_grad,
-              min_abs_actv, min_abs_grad,
-              mean_actv, mean_grad,
-              sum_sq_actv, sum_sq_grad);
+              mean_actv, mean_grad);
           LOG(INFO) << temp;
 
         }
 
-      }
+        // Display the weight stats
 
-      // Display the weight stats
+
+      }
     }
     for (int i = 0; i < callbacks_.size(); ++i) {
       callbacks_[i]->on_gradients_ready();
