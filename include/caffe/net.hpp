@@ -309,6 +309,9 @@ class Net {
   /// The root net that actually holds the shared layers in data parallelism
   const Net* const root_net_;
   DISABLE_COPY_AND_ASSIGN(Net);
+
+  // Vector of names of layer types after which to run the prolog method.
+  std::vector<std::string> run_prolog_after_;
 };
 
 

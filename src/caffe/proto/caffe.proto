@@ -93,6 +93,10 @@ message NetParameter {
 
   // DEPRECATED: use 'layer' instead.
   repeated V1LayerParameter layers = 2;
+
+  // Specifies the string type-names for the layers after whose forward method
+  // to run the prolog function.
+  repeated string run_prolog_after = 1000;
 }
 
 // NOTE
