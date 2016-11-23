@@ -53,8 +53,8 @@ void Net<Dtype>::Init(const NetParameter& in_param) {
   phase_ = in_param.state().phase();
 
   // Record the names of layer-types after which to run prolog processing.
-  for (const auto& name : in_param.run_prolog_after()) {
-    run_prolog_after_.push_back(name);
+  for (const auto& name : in_param.run_epilog_after()) {
+    run_epilog_after_.push_back(name);
   }
 
   // Filter layers based on their include/exclude rules and
@@ -556,8 +556,8 @@ Dtype Net<Dtype>::ForwardFromTo(int start, int end) {
     loss += layer_loss;
 
     // Invoke the prolog processing if requested.
-    if (std::find(run_prolog_after_.begin(), run_prolog_after_.end(),
-                  layers_[i]->type()) != run_prolog_after_.end()) {
+    if (std::find(run_epilog_after_.begin(), run_epilog_after_.end(),
+                  layers_[i]->type()) != run_epilog_after_.end()) {
       LOG(INFO) << "After layer: " << layers_[i]->type();
     }
     if (debug_info_) { ForwardDebugInfo(i); }
@@ -607,8 +607,8 @@ void Net<Dtype>::BackwardFromTo(int start, int end) {
           top_vecs_[i], bottom_need_backward_[i], bottom_vecs_[i]);
 
       // Run the prolog code if requested.
-      if (std::find(run_prolog_after_.begin(), run_prolog_after_.end(),
-                    layers_[i]->type()) != run_prolog_after_.end()) {
+      if (std::find(run_epilog_after_.begin(), run_epilog_after_.end(),
+                    layers_[i]->type()) != run_epilog_after_.end()) {
         LOG(INFO) << "After grad layer: " << layers_[i]->type();
       }
 
