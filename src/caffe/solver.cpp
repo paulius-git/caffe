@@ -249,13 +249,16 @@ void Solver<Dtype>::Step(int iters) {
         }
       }
 
+      // Display custom statistics for blobs.
       if (param_.display_stats() && Caffe::root_solver()) {
         // Display the activation stats.
         const auto& blobs = net_->blobs();
         const auto& blob_names = net_->blob_names();
         CHECK_EQ(blobs.size(), blob_names.size())
             << "There must be the same number of blobs and blob-names.";
-
+ 
+        LOG(INFO) << "                                  ACTIVATIONS                                   GRADIENTS";
+        LOG(INFO) << "      BLOB NAME            MIN          MAX          MEAN         MIN          MAX          MEAN";
         for (uint i_blob = 0; i_blob < blobs.size(); i_blob++) {
           if (blob_names[i_blob].find("split") != std::string::npos) continue;
 
@@ -278,8 +281,8 @@ void Solver<Dtype>::Step(int iters) {
 
           char temp[10000];
           // sprintf(temp, 
-          //     "%20s %12.4f %12.4f %12.4f %12.4f %12.4f %12.4f "
-          //     "%12.4f %12.4f %.4e %.4e",
+          //     "%20s %112.4f %112.4f %112.4f %112.4f %112.4f %112.4f "
+          //     "%112.4f %112.4f %.4e %.4e",
           //     blob_names[i_blob].c_str(), 
           //     min_actv, max_actv,
           //     min_grad, max_grad,
@@ -287,11 +290,10 @@ void Solver<Dtype>::Step(int iters) {
           //     mean_actv, mean_grad,
           //     sum_sq_actv, sum_sq_grad);
           sprintf(temp, 
-              "%20s %12.4f %12.4f %12.4f %12.4f %.4e %.4e",
+              "%20s %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e",
               blob_names[i_blob].c_str(), 
-              min_actv, max_actv,
-              min_grad, max_grad,
-              mean_actv, mean_grad);
+              min_actv, max_actv, mean_actv,
+              min_grad, max_grad, mean_grad);
           LOG(INFO) << temp;
 
         }
