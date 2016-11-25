@@ -15,6 +15,7 @@
 #include "caffe/util/hdf5.hpp"
 #include "caffe/util/insert_splits.hpp"
 #include "caffe/util/math_functions.hpp"
+#include "caffe/util/process_blob.hpp"
 #include "caffe/util/upgrade_proto.hpp"
 
 #include "caffe/test/test_caffe_main.hpp"
@@ -52,9 +53,9 @@ void Net<Dtype>::Init(const NetParameter& in_param) {
   // Set phase from the state.
   phase_ = in_param.state().phase();
 
-  // Record the names of layer-types after which to run prolog processing.
-  for (const auto& name : in_param.run_epilog_after()) {
-    run_epilog_after_.push_back(name);
+  // Initialize the processing options if requrested.
+  if (in_param.has_processing_options()) {
+    processing_options_ = in_param.processing_options();
   }
 
   // Filter layers based on their include/exclude rules and
@@ -556,9 +557,16 @@ Dtype Net<Dtype>::ForwardFromTo(int start, int end) {
     loss += layer_loss;
 
     // Invoke the prolog processing if requested.
-    if (std::find(run_epilog_after_.begin(), run_epilog_after_.end(),
-                  layers_[i]->type()) != run_epilog_after_.end()) {
-      LOG(INFO) << "After layer: " << layers_[i]->type();
+    if (processing_options_.process_fwd()) {
+      const auto& process_names = processing_options_.types_to_process();
+      if (std::find(process_names.begin(), process_names.end(),
+                    layers_[i]->type()) != process_names.end()) {
+        LOG(INFO) << "After layer: " << layers_[i]->type();
+        processBlobs<Dtype>(top_vecs_[i], kData,
+                            processing_options_.type1(),
+                            processing_options_.type2(),
+                            processing_options_.type3());
+      }
     }
     if (debug_info_) { ForwardDebugInfo(i); }
   }
@@ -606,9 +614,22 @@ void Net<Dtype>::BackwardFromTo(int start, int end) {
       layers_[i]->Backward(
           top_vecs_[i], bottom_need_backward_[i], bottom_vecs_[i]);
 
-      // Run the prolog code if requested.
-      if (std::find(run_epilog_after_.begin(), run_epilog_after_.end(),
-                    layers_[i]->type()) != run_epilog_after_.end()) {
+      // Run the processing code if requested.
+      const auto& process_names = processing_options_.types_to_process();
+      if (std::find(process_names.begin(), process_names.end(),
+                    layers_[i]->type()) != process_names.end()) {
+        if (processing_options_.process_bwd_activ()) {
+          processBlobs<Dtype>(bottom_vecs_[i], kDiff,
+                              processing_options_.type1(),
+                              processing_options_.type2(),
+                              processing_options_.type3());
+        }
+        if (processing_options_.process_bwd_weight()) {
+          processBlobs<Dtype>(layers_[i]->blobs(), kDiff,
+                              processing_options_.type1(),
+                              processing_options_.type2(),
+                              processing_options_.type3());
+        }
         LOG(INFO) << "After grad layer: " << layers_[i]->type();
       }
 

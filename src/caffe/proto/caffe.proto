@@ -61,6 +61,22 @@ message FillerParameter {
   optional VarianceNorm variance_norm = 8 [default = FAN_IN];
 }
 
+// Message for specifying network value processing.
+message ValueProcessingOptions {
+  // Names of the layer types to process.
+  repeated string types_to_process = 1;
+
+  // Booleans to indicate what data and when to process.
+  optional bool process_fwd = 2 [default = false];
+  optional bool process_bwd_activ = 3 [default = false];
+  optional bool process_bwd_weight = 4 [default = false];
+
+  // Booleans to enable various types of processing.
+  optional bool type1 = 5 [default = false];
+  optional bool type2 = 6 [default = false];
+  optional uint32 type3 = 7 [default = 0xffffffff];
+}
+
 message NetParameter {
   optional string name = 1; // consider giving the network a name
   // DEPRECATED. See InputParameter. The input blobs to the network.
@@ -94,9 +110,8 @@ message NetParameter {
   // DEPRECATED: use 'layer' instead.
   repeated V1LayerParameter layers = 2;
 
-  // Specifies the string type-names for the layers after whose forward method
-  // to run the epilog function.
-  repeated string run_epilog_after = 1000;
+  // Specifies the options for value processing.
+  optional ValueProcessingOptions processing_options = 1000;
 }
 
 // NOTE

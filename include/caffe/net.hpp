@@ -311,7 +311,7 @@ class Net {
   DISABLE_COPY_AND_ASSIGN(Net);
 
   // Vector of names of layer types after which to run the prolog method.
-  std::vector<std::string> run_epilog_after_;
+  ValueProcessingOptions processing_options_;
 };
 
 
